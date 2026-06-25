@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Certificados Básicos</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background:#f5f5f5;
+}
+
+h1{
+    text-align:center;
+}
+
+.container{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:20px;
+}
+
+.panel{
+    background:white;
+    padding:15px;
+    border-radius:8px;
+    box-shadow:0 0 5px rgba(0,0,0,.1);
+}
+
+label{
+    display:block;
+    margin-top:10px;
+    font-weight:bold;
+}
+
+input, textarea, select{
+    width:100%;
+    padding:8px;
+    box-sizing:border-box;
+    font-family: Arial, sans-serif;
+    font-size:14px;
+}
+
+textarea{
+    min-height:100px;
+}
+
+button{
+    margin-top:15px;
+    padding:10px 15px;
+    cursor:pointer;
+}
+
+#resultado{
+    min-height:700px;
+    white-space:pre-wrap;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Generador de Certificado Básico</h1>
+
+<div class="container">
+
+<div class="panel">
+
+<label>N° Certificado</label>
+<input id="certificado" value="56">
+
+<label>Zona</label>
+<input id="zona" value="Z1">
+
+<label>Mes</label>
+<input id="mes" value="MAYO">
+
+<label>Año</label>
+<input id="anio" value="2026">
+
+<label>Expediente</label>
+<input id="expediente" value="EX-2026-26108056--GCABA-DGSPLU">
+
+<label>IF Certificado</label>
+<input id="ifCertificado" value="IF-2026-26568558-GCABA-DGSPLU">
+
+<label>IF SAP</label>
+<input id="ifSAP" value="IF-2026-26531480-GCABA-DGSPLU">
+
+<label>IF Gerencia Operativa</label>
+<input id="ifGerencia" value="IF-2026-29506699-GCABA-DGSPLU">
+
+<label>Contratista</label>
+<select id="contratista" onchange="actualizarZona()">
+    <option value="Soluciones Químicas S.A., OS.LO. Argentina S.A., Mantelectric I.C.I.S.A. U.T." data-zona="Z1" selected>
+        Z1 - Soluciones Químicas S.A., OS.LO. Argentina S.A., Mantelectric I.C.I.S.A. U.T.
+    </option>
+    <option value="Reconstrucción Caños S.A." data-zona="Z2">
+        Z2 - Reconstrucción Caños S.A.
+    </option>
+    <option value="Automat Argentina S.A." data-zona="Z3">
+        Z3 - Automat Argentina S.A.
+    </option>
+    <option value="DESOBSTRUCTORA ARGENTINA S.A.-ASHIRA S.A. - U.T." data-zona="Z4">
+        Z4 - DESOBSTRUCTORA ARGENTINA S.A.-ASHIRA S.A. - U.T.
+    </option>
+    <option value="ALEMARSA S.A.-SACH S.A.- MANTENIMIENTOS AMBIENTALES S.A. - U.T." data-zona="Z5">
+        Z5 - ALEMARSA S.A.-SACH S.A.- MANTENIMIENTOS AMBIENTALES S.A. - U.T.
+    </option>
+</select>
+
+<label>Monto Certificado (Número)</label>
+<input id="montoCertificadoNumero" value="$29.110.530,41" oninput="actualizarMontos()">
+
+<label>Monto Certificado (Letras)</label>
+<textarea id="montoCertificadoLetras" readonly></textarea>
+
+<label id="lblCertAcumar" style="display:none;">
+Monto Certificado ACUMAR (Número)
+</label>
+
+<input
+    id="montoCertificadoAcumarNumero"
+    style="display:none;"
+    oninput="actualizarMontos()">
+
+<label id="lblCertAcumarLetras" style="display:none;">
+Monto Certificado ACUMAR (Letras)
+</label>
+
+<textarea
+    id="montoCertificadoAcumarLetras"
+    readonly
+    style="display:none;"></textarea>
+
+<label>Monto Redeterminaciones (Número)</label>
+<input id="montoRedetNumero" value="" oninput="actualizarMontos()">
+
+<label>Monto Redeterminaciones (Letras)</label>
+<textarea id="montoRedetLetras" readonly></textarea>
+
+<label id="lblRedetAcumar" style="display:none;">
+Monto Redeterminaciones ACUMAR (Número)
+</label>
+
+<input
+    id="montoRedetAcumarNumero"
+    style="display:none;"
+    oninput="actualizarMontos()">
+
+<label id="lblRedetAcumarLetras" style="display:none;">
+Monto Redeterminaciones ACUMAR (Letras)
+</label>
+
+<textarea
+    id="montoRedetAcumarLetras"
+    readonly
+    style="display:none;"></textarea>
+
+<label>Resoluciones</label>
+<textarea id="resoluciones" style="height:180px;">
+5757-MHFGC/21, 440-MHFGC/22, 2377-MHFGC/22, 3009-MHFGC/22, 4375-MHFGC/22
+</textarea>
+
+<button onclick="generarTexto()">Generar Texto</button>
+<button onclick="generarTextoDGTAL()">Generar Texto DGTAL</button>
+<button onclick="copiarTexto()">Copiar Texto</button>
+
+</div>
+
+<div class="panel">
+<h3>Vista Previa</h3>
+<div id="resultado"></div>
+</div>
+
+</div>
+
+<script>
+
+const datosZona = {
+
+Z1:{
+monto:"$29.110.530,41",
+resoluciones:`5757-MHFGC/21, 440-MHFGC/22, 2377-MHFGC/22, 3009-MHFGC/22, 4375-MHFGC/22, 5946-MHFGC/22, 7486-MHFGC/22, 689-MHFGC/23, 2791-MHFGC/23, 3168-MHFGC/23, 4505-MHFGC/23, 5609-MHFGC/23, 6473-MHFGC/23, 7357-MHFGC/23, 8009-MHFGC/23, 8870-MHFGC/23, 9375-MHFGC/23, 477-MHFGC/24, 1858-MHFGC/24, 2745-MHFGC/24, 5388-MHFGC/24, 6915-MHFGC/24, 8647-MHFGC/24, 8865-MHFGC/24, 67-MHFGC/25, 1755-MHFGC/25, 2474-MHFGC/25, 3817-MHFGC/25, 5258-MHFGC/25 y 1551-MHFGC/26`
+},
+
+Z2:{
+monto:"$172.672.388,38",
+montoAcumar:"$217.093.443,32",
+resoluciones:`1952-MHFGC/25, 2883-MHFGC/25, 4029-MHFGC/25, 4984-MHFGC/25 y 1608-MHFGC/26`
+},
+
+Z3:{
+monto:"$402.868.375,48",
+resoluciones:`1953-MHFGC/25, 2498-MHFGC/25, 0734-MHFGC/25, 4985-MHFGC/25 y 1560-MHFGC/26`
+},
+
+Z4:{
+monto:"$15.148.196,14",
+montoAcumar:"$7.006.983,41",
+resoluciones:`407-MHFGC/22, 922-MHFGC/22, 2425-MHFGC/22, 3381-MHFGC/22, 4929-MHFGC/22, 7233-MHFGC/22, 568-MHFGC/23, 1527-MHFGC/23, 3203-MHFGC/23, 5089-MHFGC/23, 5978-MHFGC/23, 6907-MHFGC/23, 7851-MHFGC/23, 8828-MHFGC/23, 575-MHFGC/24, 1828-MHFGC/24, 2942-MHFGC/24, 3585-MHFGC/24, 4545-MHFGC/24, 5669-MHFGC/24, 7345-MHFGC/24, 8630-MHFGC/24, 48-MHFGC/25, 1590-MHFGC/25, 3146-MHFGC/25, 4024-MHFGC/25, 4990-MHFGC/25 y 1554-MHFGC/26`
+},
+
+Z5:{
+monto:"$13.080.906,25",
+resoluciones:`430-MHFGC/22, 1239-MHFGC/22, 2668-MHFGC/22, 6593-MHFGC/22, 6594-MHFGC/22, 6595-MHFGC/22, 344-MHFGC/23, 1204-MHFGC/23, 2442-MHFGC/23, 4538-MHFGC/23, 6456-MHFGC/23, 6457-MHFGC/23, 6458-MHFGC/23, 7524-MHFGC/23, 9013-MHFGC/23, 9014-MHFGC/23, 318-MHFGC/24, 1402-MHFGC/24, 1826-MHFGC/24, 2694-MHFGC/24, 6933-MHFGC/24, 8627-MHFGC/24, 538-MHFGC/25, 539-MHFGC/25, 2182-MHFGC/25, 2686-MHFGC/25, 4860-MHFGC/25 y 436-MHFGC/26`
+}
+
+};
+
+function actualizarZona(){
+
+    const select = document.getElementById("contratista");
+    const zona = select.options[select.selectedIndex].dataset.zona;
+
+    document.getElementById("zona").value = zona;
+
+    const info = datosZona[zona];
+
+    if(info){
+
+        document.getElementById("montoCertificadoNumero").value =
+            info.monto;
+        if(info.montoAcumar){
+
+    document.getElementById("montoCertificadoAcumarNumero").value =
+        info.montoAcumar;
+
+} else {
+
+    document.getElementById("montoCertificadoAcumarNumero").value = "";
+
+}
+
+        document.getElementById("resoluciones").value =
+            info.resoluciones;
+
+        if(zona=="Z2" || zona=="Z4"){
+
+document.getElementById("lblCertAcumar").style.display="block";
+document.getElementById("montoCertificadoAcumarNumero").style.display="block";
+document.getElementById("lblCertAcumarLetras").style.display="block";
+document.getElementById("montoCertificadoAcumarLetras").style.display="block";
+
+document.getElementById("lblRedetAcumar").style.display="block";
+document.getElementById("montoRedetAcumarNumero").style.display="block";
+document.getElementById("lblRedetAcumarLetras").style.display="block";
+document.getElementById("montoRedetAcumarLetras").style.display="block";
+
+}else{
+
+document.getElementById("lblCertAcumar").style.display="none";
+document.getElementById("montoCertificadoAcumarNumero").style.display="none";
+document.getElementById("lblCertAcumarLetras").style.display="none";
+document.getElementById("montoCertificadoAcumarLetras").style.display="none";
+
+document.getElementById("lblRedetAcumar").style.display="none";
+document.getElementById("montoRedetAcumarNumero").style.display="none";
+document.getElementById("lblRedetAcumarLetras").style.display="none";
+document.getElementById("montoRedetAcumarLetras").style.display="none";
+
+}
+
+        actualizarMontos();
+    }
+
+}
+
+function actualizarMontos(){
+
+document.getElementById("montoCertificadoLetras").value =
+numeroALetras(document.getElementById("montoCertificadoNumero").value);
+
+document.getElementById("montoRedetLetras").value =
+numeroALetras(document.getElementById("montoRedetNumero").value);
+
+const certAcumar =
+document.getElementById("montoCertificadoAcumarNumero");
+
+if(certAcumar){
+document.getElementById("montoCertificadoAcumarLetras").value =
+numeroALetras(certAcumar.value);
+}
+
+const redetAcumar =
+document.getElementById("montoRedetAcumarNumero");
+
+if(redetAcumar){
+document.getElementById("montoRedetAcumarLetras").value =
+numeroALetras(redetAcumar.value);
+}
+
+}
+
+function numeroALetras(valor){
+
+valor = valor.replace(/\$/g,'').replace(/\./g,'').replace(',','.');
+let n = parseFloat(valor);
+if(isNaN(n)) return "";
+
+let entero = Math.floor(n);
+let dec = Math.round((n-entero)*100);
+
+return ("PESOS " + convertir(entero) + " CON " +
+String(dec).padStart(2,'0') + "/100").toUpperCase();
+}
+
+function convertir(n){
+
+const u=["","UN","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE"];
+const d=["","DIEZ","VEINTE","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
+const e={11:"ONCE",12:"DOCE",13:"TRECE",14:"CATORCE",15:"QUINCE"};
+
+function c99(x){
+
+const especiales = {
+10:"DIEZ",
+11:"ONCE",
+12:"DOCE",
+13:"TRECE",
+14:"CATORCE",
+15:"QUINCE",
+16:"DIECISEIS",
+17:"DIECISIETE",
+18:"DIECIOCHO",
+19:"DIECINUEVE",
+20:"VEINTE",
+21:"VEINTIUN",
+22:"VEINTIDOS",
+23:"VEINTITRES",
+24:"VEINTICUATRO",
+25:"VEINTICINCO",
+26:"VEINTISEIS",
+27:"VEINTISIETE",
+28:"VEINTIOCHO",
+29:"VEINTINUEVE"
+};
+
+if(x < 30) return especiales[x] || u[x];
+
+let dec=Math.floor(x/10);
+let uni=x%10;
+
+return d[dec] + (uni ? " Y " + u[uni] : "");
+
+}
+
+function c999(x){
+if(x===0) return "";
+if(x===100) return "CIEN";
+const cen=["","CIENTO","DOSCIENTOS","TRESCIENTOS","CUATROCIENTOS","QUINIENTOS","SEISCIENTOS","SETECIENTOS","OCHOCIENTOS","NOVECIENTOS"];
+let c=Math.floor(x/100), r=x%100;
+return (c?cen[c]+" ":"")+c99(r);
+}
+
+let millones=Math.floor(n/1000000);
+let miles=Math.floor((n%1000000)/1000);
+let resto=n%1000;
+
+let txt="";
+if(millones===1) txt+="UN MILLON ";
+else if(millones>1) txt+=c999(millones)+" MILLONES ";
+
+if(miles===1) txt+="MIL ";
+else if(miles>1) txt+=c999(miles)+" MIL ";
+
+txt+=c999(resto);
+
+return txt.trim();
+}
+
+
+function generarTexto(){
+
+const certificado = document.getElementById("certificado").value;
+const zona = document.getElementById("zona").value;
+const mes = document.getElementById("mes").value.toUpperCase();
+const anio = document.getElementById("anio").value;
+
+const expediente = document.getElementById("expediente").value;
+
+const ifCertificado = document.getElementById("ifCertificado").value;
+const ifSAP = document.getElementById("ifSAP").value;
+
+const contratista = document.getElementById("contratista").value;
+
+const montoCertificadoLetras = document.getElementById("montoCertificadoLetras").value;
+const montoCertificadoNumero = document.getElementById("montoCertificadoNumero").value;
+
+const montoRedetLetras = document.getElementById("montoRedetLetras").value;
+const montoRedetNumero = document.getElementById("montoRedetNumero").value;
+
+const montoCertificadoAcumarNumero =
+document.getElementById("montoCertificadoAcumarNumero")?.value || "";
+
+const montoCertificadoAcumarLetras =
+document.getElementById("montoCertificadoAcumarLetras")?.value || "";
+
+const montoRedetAcumarNumero =
+document.getElementById("montoRedetAcumarNumero")?.value || "";
+
+const montoRedetAcumarLetras =
+document.getElementById("montoRedetAcumarLetras")?.value || "";
+
+const resoluciones = document.getElementById("resoluciones").value;
+
+let textoCertificado;
+let textoRedeterminaciones;
+
+if(zona=="Z2" || zona=="Z4"){
+
+    textoCertificado =
+        `${montoCertificadoLetras} (${montoCertificadoNumero}) y ` +
+        `${montoCertificadoAcumarLetras} (${montoCertificadoAcumarNumero}) ACUMAR`;
+
+    textoRedeterminaciones =
+        `${montoRedetLetras} (${montoRedetNumero}) y ` +
+        `${montoRedetAcumarLetras} (${montoRedetAcumarNumero}) ACUMAR`;
+
+}else{
+
+    textoCertificado =
+        `${montoCertificadoLetras} (${montoCertificadoNumero})`;
+
+    textoRedeterminaciones =
+        `${montoRedetLetras} (${montoRedetNumero})`;
+
+}
+
+
+const datosRedetDefinitiva = {
+    Z1:{resolucion:"377-MEPHUGC/26",redeterminacion:"primera a vigésima séptima (1° a 27°)",empresa:"SOLUCIONES QUÍMICAS S.A., OS.LO. ARGENTINA S.A., MANTELECTRIC I.C.I.S.A. U.T.",zonaTexto:"Zona 1"},
+    Z2:{resolucion:"282-MEPHUGC/26",redeterminacion:"primera a vigésima sexta (1° a 26°)",empresa:"RECONSTRUCCIÓN CAÑOS S.A.",zonaTexto:"Zona 2"},
+    Z3:{resolucion:"281-MEPHUGC/26",redeterminacion:"primera a vigésima sexta (1° a 26°)",empresa:"AUTOMAT ARGENTINA S.A.",zonaTexto:"Zona 3"},
+    Z4:{resolucion:"376-MEPHUGC/26",redeterminacion:"primera a vigésima tercera (1° a 23°)",empresa:"DESOBSTRUCTORA ARGENTINA S.A.-ASHIRA S.A. - U.T.",zonaTexto:"Zona 4"},
+    Z5:{resolucion:"378-MEPHUGC/26",redeterminacion:"primera a vigésima sexta (1° a 26°)",empresa:"ALEMARSA S.A.-SACH S.A.- MANTENIMIENTOS AMBIENTALES S.A. - U.T.",zonaTexto:"Zona 5"}
+};
+
+const infoRedet = datosRedetDefinitiva[zona];
+
+
+const texto = `Referencia: S/CERTIFICADO BÁSICO N.° ${certificado} ${zona} ${mes} ${anio}
+${expediente}
+
+DIRECCIÓN GENERAL SISTEMA PLUVIAL
+DIRECTORA GENERAL
+Arq. Gimena De Franco
+
+Por las presentes actuaciones tramita el Certificado Básico N.° ${certificado} (${ifCertificado}), correspondiente a los trabajos realizados durante el mes de ${mes.toLowerCase()} de ${anio} por la empresa ${contratista}, por un monto de ${textoCertificado}, correspondiente al servicio básico de Mantenimiento Integral de la Red Pluvial.
+
+Por otro lado, las Resoluciones Nros. ${resoluciones}, aprobaron las redeterminaciones provisorias de precios por un total de ${textoRedeterminaciones}, correspondientes al servicio de Mantenimiento Integral de la Red Pluvial.
+
+Se informa que los montos mencionados surgen del detalle de liquidación emitido por el sistema SAP, vinculado al expediente de referencia mediante el ${ifSAP}.
+
+En este sentido, corresponde señalar que por Resolución ${infoRedet.resolucion} se aprobó el Acta Acuerdo de la ${infoRedet.redeterminacion} Redeterminación Definitiva de Precios suscripta, en el marco de la Ley 2.809, entre este Ministerio de Espacio Público e Higiene Urbana y la empresa ${infoRedet.empresa}, adjudicataria de la ${infoRedet.zonaTexto} de la Licitación Pública de Etapa Múltiple 7162-0734-LPU21, referida al “Servicio de Mantenimiento Integral de la Red Pluvial y Tareas Correctivas” por el monto antes mencionado.
+
+Asimismo, durante el período se efectuó la verificación y el control de las tareas ejecutadas, de conformidad con los Planes de Mantenimiento desarrollados por la empresa contratista, en cumplimiento de lo establecido en el Pliego de Condiciones Técnicas y las reglas del buen arte.
+
+De acuerdo a las responsabilidades primarias establecidas en el Decreto N° 387-GCABA/23 modificado por el N° 144-GCABA-AJG/26, se eleva a su intervención, toda vez que el tema que trata se halla dentro de las misiones y funciones de esta repartición, según el detalle:
+
+Contratista: ${contratista}
+
+Licitación Pública Nº 7162-0734-LPU21 “Servicio de Mantenimiento Integral de la Red Pluvial y Tareas Correctivas”.
+
+Expediente Nº: 2021-15676966-GCABA-DGTALMEPHU
+
+Resolución: N° 2021-641-GCABA-MEPHUGC
+
+Resolución de Aprobación de Prórroga: 2024-970-GCABA-MEPHUGC
+
+Atento a lo expuesto, esta Gerencia Operativa presta conformidad al Certificado de referencia.
+
+Se remiten las presentes actuaciones para la prosecución de su trámite.
+
+Sin otro particular, la saludo atentamente.`;
+
+document.getElementById("resultado").innerText = texto;
+
+}
+
+
+
+function generarTextoDGTAL(){
+
+const certificado = document.getElementById("certificado").value;
+const zona = document.getElementById("zona").value;
+const mes = document.getElementById("mes").value;
+const anio = document.getElementById("anio").value;
+const expediente = document.getElementById("expediente").value;
+const ifCertificado = document.getElementById("ifCertificado").value;
+const ifSAP = document.getElementById("ifSAP").value;
+const ifGerencia = document.getElementById("ifGerencia").value;
+const contratista = document.getElementById("contratista").value;
+
+const cuitZona = {
+Z1:"30-71731123-6",
+Z2:"30-67779097-7",
+Z3:"30-57847579-6",
+Z4:"30-71726938-8",
+Z5:"30-71730593-7"
+};
+
+const montoCertificadoNumero = document.getElementById("montoCertificadoNumero").value;
+const montoCertificadoLetras = document.getElementById("montoCertificadoLetras").value;
+const montoCertificadoAcumarNumero = document.getElementById("montoCertificadoAcumarNumero").value || "";
+const montoCertificadoAcumarLetras = document.getElementById("montoCertificadoAcumarLetras").value || "";
+
+const montoRedetNumero = document.getElementById("montoRedetNumero").value;
+const montoRedetLetras = document.getElementById("montoRedetLetras").value;
+const montoRedetAcumarNumero = document.getElementById("montoRedetAcumarNumero").value || "";
+const montoRedetAcumarLetras = document.getElementById("montoRedetAcumarLetras").value || "";
+
+const resoluciones = document.getElementById("resoluciones").value;
+
+const infoRedet = datosRedetDefinitiva[zona];
+
+let parrafoMontos;
+if(zona=="Z2" || zona=="Z4"){
+parrafoMontos = `En tal sentido, se adjunta a orden 4 del expediente el Certificado N° ${certificado}, el que luce como Informe N° ${ifCertificado}, el cual asciende a la suma de ${montoCertificadoLetras} (${montoCertificadoNumero}) correspondiente a las tareas de mantenimiento y a ${montoCertificadoAcumarLetras} (${montoCertificadoAcumarNumero}) correspondiente a las tareas de mantenimiento relacionadas a ACUMAR.`;
+}else{
+parrafoMontos = `En tal sentido, se adjunta a orden 4 del expediente el Certificado N° ${certificado}, el que luce como Informe N° ${ifCertificado}, el cual asciende a la suma de ${montoCertificadoLetras} (${montoCertificadoNumero}).`;
+}
+
+let parrafoRedet;
+if(zona=="Z2" || zona=="Z4"){
+parrafoRedet = `Asimismo, se aprobaron las redeterminaciones provisorias de precios del servicio, por un total de ${montoRedetLetras} (${montoRedetNumero}) y ${montoRedetAcumarLetras} (${montoRedetAcumarNumero}), mediante las resoluciones N° ${resoluciones}.`;
+}else{
+parrafoRedet = `Asimismo, se aprobaron las redeterminaciones provisorias de precios del servicio, por un total de ${montoRedetLetras} (${montoRedetNumero}), mediante las resoluciones N° ${resoluciones}.`;
+}
+
+const texto = `S/ ${expediente} - Certificado Básico N° ${certificado} – ${mes} ${anio} - ${zona}
+
+DIRECCIÓN GENERAL TÉCNICA, ADMINISTRATIVA Y LEGAL
+
+Por las presentes actuaciones tramita el Certificado Básico N° ${certificado}, correspondiente a los trabajos realizados durante el mes de ${mes.toLowerCase()} del ${anio} por la empresa ${contratista} (CUIT N° ${cuitZona[zona]}) en el marco de la Licitación Pública N° 7162-0734-LPU21, del “Servicio de Mantenimiento Integral de la Red Pluvial y Tareas Correctivas”, que tramitó por el Expediente Electrónico N° 15676966-GCABA-DGTALMEPHU/21.
+
+Resulta pertinente mencionar que, la Autoridad Cuenca Matanza Riachuelo (ACUMAR), en el marco de los autos “AGUA Y SANEAMIENTOS ARGENTINOS S.A. (AYSA) Y OTROS S/ EJECUCIÓN DE SENTENCIA” Expte. 298/2013 en trámite por ante el Juzgado Criminal y Correccional Federal N° 12 Secretaría N° 24, solicita una actualización de la información respecto del estado y situación de aquellas contrataciones en las que sea parte la Ciudad Autónoma de Buenos Aires.
+
+${parrafoMontos}
+
+Cabe mencionar que durante el mes se llevó a cabo la verificación y control de las tareas realizadas, conforme a los Planes de Mantenimiento ejecutados por la empresa contratista, siguiendo lo establecido en el Pliego de Especificaciones Técnicas y las reglas del buen arte, de conformidad con lo informado por el Gerente Operativo de la Gerencia Operativa de Mantenimiento, bajo el Informe N° ${ifGerencia}.
+
+Asimismo, se informa que el monto mencionado surge del detalle de liquidación del sistema SAP, el cual se vinculó al Expediente de referencia mediante el Informe N° ${ifSAP}.
+
+En este sentido, corresponde señalar que por Resolución ${infoRedet.resolucion} se aprobó el Acta Acuerdo de la ${infoRedet.redeterminacion} Redeterminación Definitiva de Precios suscripta, en el marco de la Ley 2.809, entre este Ministerio de Espacio Público e Higiene Urbana y la empresa ${infoRedet.empresa}, adjudicataria de la ${infoRedet.zonaTexto} de la Licitación Pública de Etapa Múltiple 7162-0734-LPU21.
+
+${parrafoRedet}
+
+Por otra parte, en virtud de lo estipulado en el artículo N° 60 del Pliego de Bases y Condiciones Particulares de la licitación que nos ocupa, solicitamos se efectúe la retención del 0,7% sobre el monto total correspondiente al servicio básico y a sus valores redeterminados.
+
+Saludo a Ud. atentamente.-`;
+
+document.getElementById("resultado").innerText = texto;
+}
+
+
+
+function copiarTexto(){
+
+const texto = document.getElementById("resultado").innerText;
+
+navigator.clipboard.writeText(texto);
+
+alert("Texto copiado al portapapeles");
+
+}
+
+actualizarZona();
+actualizarMontos();
+generarTexto();
+
+</script>
+
+</body>
+</html>
