@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generador PV</title>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:#f3f5f7}
+header{background:#1f4e79;color:#fff;padding:14px 20px}
+.container{display:grid;grid-template-columns:420px 1fr;gap:16px;padding:16px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+h3{margin:8px 0}
+.section{border-top:1px solid #ddd;padding-top:8px;margin-top:8px}
+label{display:block;font-weight:600;margin-top:8px}
+input,select,textarea{width:100%;box-sizing:border-box;padding:8px}
+.preview{height:85vh;font-family:Calibri,Arial,sans-serif;line-height:1.5}
+.auto{background:#eef7ff;padding:8px;border-radius:6px;margin-top:8px}
+.buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button{padding:10px 12px}
+</style>
+</head>
+<body>
+<header><h2>Generador PV</h2></header>
+
+<div class="container">
+<div class="panel">
+
+<div class="section">
+<h3>Datos Generales</h3>
+<label>Expediente</label><input id="expediente">
+<label>Certificado N°</label><input id="certificado">
+<label>Mes</label><input id="mes" value="MAYO">
+<label>Año</label><input id="anio" value="2026">
+<label>Zona</label>
+<select id="zona">
+<option value="Z1">Zona 1</option>
+<option value="Z2">Zona 2</option>
+<option value="Z3">Zona 3</option>
+<option value="Z4">Zona 4</option>
+<option value="Z5">Zona 5</option>
+</select>
+</div>
+
+<div class="section">
+<h3>Informes</h3>
+<label>IF Certificado</label><input id="ifCert">
+<label>IF Elevación</label><input id="ifElev">
+<label>IF SAP</label><input id="ifSap">
+</div>
+
+<div class="section">
+<h3>Montos</h3>
+<label>Monto Básico</label><input id="montoBasico" readonly>
+<label>Monto Básico en Letras</label><input id="letrasBasico">
+<label>Monto Redeterminado</label><input id="montoRedet">
+<label>Monto Redeterminado en Letras</label><input id="letrasRedet">
+</div>
+
+<div class="section">
+<h3>Datos Automáticos</h3>
+<div class="auto">
+<div><b>Empresa:</b> <span id="empresa"></span></div>
+<div><b>CUIT:</b> <span id="cuit"></span></div>
+<div><b>Resolución Definitiva:</b> <span id="resDef"></span></div>
+<div><b>Redeterminación:</b> <span id="redet"></span></div>
+</div>
+</div>
+
+<div class="buttons">
+<button onclick="copiar()">Copiar</button>
+<button onclick="limpiar()">Limpiar</button>
+</div>
+
+</div>
+
+<div class="panel">
+<textarea id="resultado" class="preview"></textarea>
+</div>
+</div>
+
+<script>
+const zonas={
+Z1:{empresa:"SOLUCIONES QUÍMICAS S.A., OS.LO. ARGENTINA S.A., MANTELECTRIC I.C.I.S.A. U.T.",cuit:"30-71731123-6",res:"377-MEPHUGC/26",red:"1° a 27°",prov:"según resoluciones vigentes"},
+Z2:{empresa:"RECONSTRUCCIÓN CAÑOS S.A.",cuit:"30-67779097-7",res:"282-MEPHUGC/26",red:"1° a 26°",prov:"1952-MHFGC/25, 2883-MHFGC/25, 4029-MHFGC/25, 4984-MHFGC/25 y 1608-MHFGC/26"},
+Z3:{empresa:"AUTOMAT ARGENTINA S.A.",cuit:"30-57847579-6",res:"281-MEPHUGC/26",red:"1° a 26°",prov:"1953-MHFGC/25, 2498-MHFGC/25, 0734-MHFGC/25, 4985-MHFGC/25 y 1560-MHFGC/26"},
+Z4:{empresa:"DESOBSTRUCTORA ARGENTINA S.A. - ASHIRA S.A. U.T.",cuit:"30-71726938-8",res:"376-MEPHUGC/26",red:"1° a 23°",prov:"según resoluciones vigentes"},
+Z5:{empresa:"ALEMARSA S.A. - SACH S.A. - MANTENIMIENTOS AMBIENTALES S.A. U.T.",cuit:"30-71730593-7",res:"378-MEPHUGC/26",red:"1° a 26°",prov:"según resoluciones vigentes"}
+};
+
+
+const datosMontos={
+Z1:{m:"$432.273.202,09",prov:"1755-MHFGC/25, 2474-MHFGC/25, 3817-MHFGC/25, 5258-MHFGC/25 y 1551-MHFGC/26",tipo:"normal"},
+Z2:{m:"$172.672.388,38",mAc:"$217.093.443,32",prov:"1952-MHFGC/25, 2883-MHFGC/25, 4029-MHFGC/25, 4984-MHFGC/25 y 1608-MHFGC/26",tipo:"acumar"},
+Z3:{m:"$402.868.375,48",prov:"1953-MHFGC/25, 2498-MHFGC/25, 0734-MHFGC/25, 4985-MHFGC/25 y 1560-MHFGC/26",tipo:"normal"},
+Z4:{m:"$220.756.772,77",mAc:"$102.113.745,44",prov:"1590-MHFGC/25, 3146-MHFGC/25, 4024-MHFGC/25, 4990-MHFGC/25 y 1554-MHFGC/26",tipo:"acumar"},
+Z5:{m:"$190.738.281,49",prov:"2182-MHFGC/25, 2686-MHFGC/25, 4860-MHFGC/25 y 436-MHFGC/26",tipo:"normal"}
+};
+
+function actualizar(){
+ const z=zonas[zona.value];
+ empresa.textContent=z.empresa;
+ cuit.textContent=z.cuit;
+ resDef.textContent=z.res;
+ redet.textContent=z.red;
+ const dm=datosMontos[zona.value];
+ montoBasico.value=dm.m;
+ letrasBasico.value=montoBasico.value;
+ letrasRedet.value=montoRedet.value;
+ z.prov=datosMontos[zona.value].prov;
+
+ resultado.value=`S/ ${expediente.value} - Certificado Básico N° ${certificado.value} - ${mes.value} ${anio.value} - ${zona.options[zona.selectedIndex].text}
+
+DIRECCIÓN GENERAL TÉCNICA, ADMINISTRATIVA Y LEGAL
+
+Por las presentes actuaciones tramita el Certificado Básico N° ${certificado.value}, correspondiente a los trabajos realizados durante el mes de ${mes.value.toLowerCase()} de ${anio.value} por la empresa ${z.empresa} (CUIT N° ${z.cuit}) en el marco de la Licitación Pública N° 7162-0734-LPU21, del “Servicio de Mantenimiento Integral de la Red Pluvial y Tareas Correctivas”, que tramitó por el Expediente Electrónico N° 15676966-GCABA-DGTALMEPHU/21.
+
+${dm.tipo==="acumar"
+?`En tal sentido, se incorpora al expediente el Certificado N° ${certificado.value}, obrante bajo Informe N° ${ifCert.value}, por un monto de ${letrasBasico.value} (${montoBasico.value}) correspondiente a las tareas de mantenimiento y por ${dm.mAc} correspondiente a las tareas de mantenimiento relacionadas a ACUMAR.`
+:`En tal sentido, se incorpora al expediente el Certificado N° ${certificado.value}, obrante bajo Informe N° ${ifCert.value}, por un monto de ${letrasBasico.value} (${montoBasico.value}), correspondiente a las tareas ejecutadas durante el período.`}
+
+Asimismo, se deja constancia de que las tareas fueron verificadas y controladas conforme surge del Informe N° ${ifElev.value}.
+
+Por otra parte, se informa que el importe certificado surge de la liquidación efectuada mediante el sistema SAP, vinculada a estas actuaciones mediante el Informe N° ${ifSap.value}.
+
+Cabe señalar que mediante Resolución N° ${z.res} se aprobó el Acta Acuerdo correspondiente a la redeterminación definitiva de precios suscripta entre este Ministerio y la empresa adjudicataria de la ${zona.options[zona.selectedIndex].text}.
+
+Asimismo, mediante las Resoluciones Nros. ${z.prov}, se aprobaron las redeterminaciones provisorias de precios del servicio por un total de ${letrasRedet.value} (${montoRedet.value}).
+
+En virtud de lo dispuesto en el artículo 60 del Pliego de Bases y Condiciones Particulares, corresponde efectuar la retención del 0,7 % sobre el monto total del servicio básico y de sus valores redeterminados.
+
+Por lo expuesto, esta Dirección General presta conformidad al monto básico de ${letrasBasico.value} (${montoBasico.value}) y al monto correspondiente a las redeterminaciones de precios por ${letrasRedet.value} (${montoRedet.value}), remitiéndose las presentes actuaciones para la aprobación del Certificado N° ${certificado.value} y la ejecución de la retención indicada.
+
+Saludo a Ud. atentamente.`;
+
+ const data={};
+ document.querySelectorAll("input,select").forEach(e=>data[e.id]=e.value);
+ localStorage.setItem("generadorPV",JSON.stringify(data));
+}
+function copiar(){navigator.clipboard.writeText(resultado.value);}
+function limpiar(){localStorage.removeItem("generadorPV");location.reload();}
+
+document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",actualizar));
+
+const g=JSON.parse(localStorage.getItem("generadorPV")||"{}");
+for(const k in g){const el=document.getElementById(k);if(el)el.value=g[k];}
+actualizar();
+</script>
+</body>
+</html>
