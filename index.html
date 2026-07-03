@@ -10,13 +10,11 @@ body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:#f3f5f7}
 header{background:#1f4e79;color:#fff;padding:14px 20px}
 .container{display:grid;grid-template-columns:420px 1fr;gap:16px;padding:16px}
 .panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
-h3{margin:8px 0}
 .section{border-top:1px solid #ddd;padding-top:8px;margin-top:8px}
 label{display:block;font-weight:600;margin-top:8px}
 input,select,textarea{width:100%;box-sizing:border-box;padding:8px}
 .preview{height:85vh;font-family:Calibri,Arial,sans-serif;line-height:1.5}
-.buttons{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-button{padding:10px 12px}
+button{padding:10px 12px;margin-top:8px}
 </style>
 </head>
 
@@ -28,7 +26,7 @@ button{padding:10px 12px}
 <div class="panel">
 
 <div class="section">
-<h3>Datos Generales</h3>
+<h3>Datos</h3>
 <label>Expediente</label><input id="expediente">
 <label>Certificado N°</label><input id="certificado">
 <label>Mes</label><input id="mes" value="MAYO">
@@ -52,51 +50,33 @@ button{padding:10px 12px}
 
 <div class="section">
 <h3>Montos</h3>
-<label>Monto Básico</label><input id="montoBasico" readonly>
+<label>Monto Básico</label><input id="montoBasico">
 <label>Monto Redeterminado</label><input id="montoRedet">
-<label>Monto Básico en Letras</label><input id="letrasBasico">
-<label>Monto Redeterminado en Letras</label><input id="letrasRedet">
 </div>
+
+<button onclick="generar()">Generar</button>
+<button onclick="copiar()">Copiar</button>
 
 </div>
 
 <div class="panel">
 <textarea id="resultado" class="preview"></textarea>
-
-<div class="buttons">
-<button onclick="actualizar()">Generar</button>
-<button onclick="copiar()">Copiar</button>
-<button onclick="location.reload()">Limpiar</button>
-</div>
 </div>
 
 </div>
 
 <script>
 
-const plantilla = `
-S/ ${expediente} - Certificado Básico N° ${certificado} - ${mes} ${anio} - ${zona}
+const zonas={
+Z3:{
+empresa:"AUTOMAT ARGENTINA S.A.",
+cuit:"30-57847579-6",
+res:"281-MEPHUGC/26",
+red:"1° a 26°"
+}
+};
 
-DIRECCIÓN GENERAL TÉCNICA, ADMINISTRATIVA Y LEGAL
-
-Por las presentes actuaciones tramita el Certificado Básico N° ${certificado}, correspondiente a los trabajos realizados durante el mes de ${mes} de ${anio} por la empresa ${empresa} (CUIT N° ${cuit}).
-
-En tal sentido, en el expediente se adjunta el Certificado N° ${certificado}, en el orden 4, el que luce como Informe N° ${ifCert}, el cual asciende a la suma de ${montoLetras} (${monto}), correspondiente a las tareas de mantenimiento detalladas en el Informe mencionado.
-
-Cabe mencionar que durante el mes se llevó a cabo la verificación y control de las tareas realizadas, conforme a los Planes de Mantenimiento ejecutados por la empresa contratista, bajo el Informe N° ${ifElev}.
-
-Asimismo, se informa que el monto mencionado surge del sistema SAP (Systemanalyse Programmentwicklung), el cual se vinculó al Expediente de referencia mediante el Informe N° ${ifSap}.
-
-En este sentido, corresponde señalar que por Resolución N° ${resolucion} se aprobó el Acta Acuerdo correspondiente.
-
-Asimismo, se aprobaron las Redeterminaciones Provisorias por un total de ${redetLetras} (${redet}).
-
-Por otra parte, en virtud de lo estipulado en el artículo N° 60 del Pliego de Bases y Condiciones Particulares, solicitamos se efectúe la retención del 0,7%.
-
-Atento a lo expuesto, esta Dirección General presta conformidad al monto básico de ${montoLetras} (${monto}) y al monto redeterminado de ${redetLetras} (${redet}).
-
-Saludo a Ud. atentamente.
-`;
+// (puedes completar Z1,Z2,Z4,Z5 igual después)
 
 function numeroALetras(v){
 if(!v) return "PESOS CERO CON 00/100";
@@ -106,54 +86,47 @@ const e=Math.floor(n), d=Math.round((n-e)*100);
 return "PESOS "+e+" CON "+String(d).padStart(2,'0')+"/100";
 }
 
-function actualizar(){
-const data={
-expediente,
-certificado,
-mes,
-anio,
-zona,
-empresa,
-cuit,
-ifCert,
-ifElev,
-ifSap,
-monto,
-montoLetras,
-redet,
-redetLetras,
-resolucion
-};
+function generar(){
 
-resultado.value = plantilla
-.replaceAll("${expediente}", expediente.value||"")
-.replaceAll("${certificado}", certificado.value||"")
-.replaceAll("${mes}", mes.value||"")
-.replaceAll("${anio}", anio.value||"")
-.replaceAll("${zona}", zona.value||"")
-.replaceAll("${empresa}", empresa.value||"AUTOMAT ARGENTINA S.A.")
-.replaceAll("${cuit}", cuit.value||"30-00000000-0")
-.replaceAll("${ifCert}", ifCert.value||"")
-.replaceAll("${ifElev}", ifElev.value||"")
-.replaceAll("${ifSap}", ifSap.value||"")
-.replaceAll("${monto}", montoBasico.value||"")
-.replaceAll("${montoLetras}", numeroALetras(montoBasico.value))
-.replaceAll("${redet}", montoRedet.value||"")
-.replaceAll("${redetLetras}", numeroALetras(montoRedet.value))
-.replaceAll("${resolucion}", "281-MEPHUGC/26");
+const exp=document.getElementById("expediente").value||"";
+const cert=document.getElementById("certificado").value||"";
+const mes=document.getElementById("mes").value||"";
+const anio=document.getElementById("anio").value||"";
+const zona=document.getElementById("zona").value;
 
-montoBasico.value = montoBasico.value || "";
+const ifCert=document.getElementById("ifCert").value||"";
+const ifElev=document.getElementById("ifElev").value||"";
+const ifSap=document.getElementById("ifSap").value||"";
+
+const monto=document.getElementById("montoBasico").value||"";
+const montoRed=document.getElementById("montoRedet").value||"";
+
+const z=zonas.Z3;
+
+document.getElementById("resultado").value =
+
+`S/ ${exp} - Certificado Básico N° ${cert} - ${mes} ${anio} - ${zona}
+
+DIRECCIÓN GENERAL TÉCNICA, ADMINISTRATIVA Y LEGAL
+
+Por las presentes actuaciones tramita el Certificado Básico N° ${cert}, correspondiente a los trabajos realizados durante el mes de ${mes} de ${anio} por la empresa ${z.empresa} (CUIT N° ${z.cuit}).
+
+En tal sentido, en el expediente se adjunta el Certificado N° ${cert}, en el orden 4, el que luce como Informe N° ${ifCert}, el cual asciende a la suma de ${numeroALetras(monto)} (${monto}), correspondiente a las tareas ejecutadas.
+
+Cabe mencionar que durante el mes se llevó a cabo la verificación y control de las tareas realizadas, bajo el Informe N° ${ifElev}.
+
+Asimismo, se informa que el monto surge del sistema SAP (Systemanalyse Programmentwicklung), Informe N° ${ifSap}.
+
+En este sentido, corresponde señalar que por Resolución N° ${z.res} se aprobaron las redeterminaciones.
+
+Atento a lo expuesto, esta Dirección presta conformidad.
+
+Saludo a Ud. atentamente.`;
 }
 
 function copiar(){
-navigator.clipboard.writeText(resultado.value||"");
+navigator.clipboard.writeText(document.getElementById("resultado").value||"");
 }
-
-document.querySelectorAll("input,select").forEach(e=>{
-e.addEventListener("input",actualizar);
-});
-
-actualizar();
 
 </script>
 
