@@ -31,6 +31,14 @@ button{padding:10px 12px;margin-top:8px}
 <label>Certificado N°</label><input id="certificado">
 <label>Mes</label><input id="mes" value="MAYO">
 <label>Año</label><input id="anio" value="2026">
+<label>Zona</label>
+<select id="zona">
+<option value="Z1">Zona 1</option>
+<option value="Z2">Zona 2</option>
+<option value="Z3">Zona 3</option>
+<option value="Z4">Zona 4</option>
+<option value="Z5">Zona 5</option>
+</select>
 </div>
 
 <div class="section">
@@ -61,40 +69,117 @@ button{padding:10px 12px;margin-top:8px}
 
 function numeroALetras(v){
 if(!v) return "PESOS CERO CON 00/100";
-const n=parseFloat(String(v).replace(/[$.]/g,'').replace(',','.'));
+
+const n = parseFloat(String(v).replace(/[$.]/g,'').replace(',','.'));
 if(isNaN(n)) return "PESOS CERO CON 00/100";
-const e=Math.floor(n), d=Math.round((n-e)*100);
-return "PESOS "+e+" CON "+String(d).padStart(2,'0')+"/100";
+
+const entero = Math.floor(n);
+const dec = Math.round((n - entero) * 100);
+
+function unidades(x){
+return ["","UNO","DOS","TRES","CUATRO","CINCO","SEIS","SIETE","OCHO","NUEVE"][x] || "";
+}
+
+function especiales(num){
+if(num===10) return "DIEZ";
+if(num===11) return "ONCE";
+if(num===12) return "DOCE";
+if(num===13) return "TRECE";
+if(num===14) return "CATORCE";
+if(num===15) return "QUINCE";
+return "";
+}
+
+function convertir(num){
+
+if(num===0) return "";
+
+if(especiales(num)) return especiales(num);
+
+if(num<10) return unidades(num);
+
+if(num<20) return "DIECI"+unidades(num-10);
+
+if(num<30) return num===20 ? "VEINTE" : "VEINTI"+unidades(num-20);
+
+const decenas=["","","VEINTE","TREINTA","CUARENTA","CINCUENTA","SESENTA","SETENTA","OCHENTA","NOVENTA"];
+
+if(num<100){
+let d=Math.floor(num/10);
+let u=num%10;
+return decenas[d] + (u ? " Y "+unidades(u) : "");
+}
+
+const centenas=["","CIENTO","DOSCIENTOS","TRESCIENTOS","CUATROCIENTOS","QUINIENTOS","SEISCIENTOS","SETECIENTOS","OCHOCIENTOS","NOVECIENTOS"];
+
+if(num===100) return "CIEN";
+
+if(num<1000){
+let c=Math.floor(num/100);
+let r=num%100;
+return centenas[c] + (r ? " "+convertir(r) : "");
+}
+
+if(num<1000000){
+let miles=Math.floor(num/1000);
+let resto=num%1000;
+
+let milesTexto = miles===1 ? "MIL" : convertir(miles)+" MIL";
+
+return milesTexto + (resto ? " "+convertir(resto) : "");
+}
+
+if(num<1000000000000){
+let millones=Math.floor(num/1000000);
+let resto=num%1000000;
+
+let millonTexto = millones===1 ? "UN MILLON" : convertir(millones)+" MILLONES";
+
+return millonTexto + (resto ? " "+convertir(resto) : "");
+}
+
+return "";
+}
+
+return "PESOS "+convertir(entero)+" CON "+String(dec).padStart(2,"0")+"/100";
 }
 
 function generar(){
 
-const expediente=document.getElementById("expediente").value||"";
-const certificado=document.getElementById("certificado").value||"";
+const exp=document.getElementById("expediente").value||"";
+const cert=document.getElementById("certificado").value||"";
 const mes=document.getElementById("mes").value||"";
 const anio=document.getElementById("anio").value||"";
+const zona=document.getElementById("zona").value;
+
 const ifCert=document.getElementById("ifCert").value||"";
 const ifElev=document.getElementById("ifElev").value||"";
 const ifSap=document.getElementById("ifSap").value||"";
+
 const monto=document.getElementById("montoBasico").value||"";
 const redet=document.getElementById("montoRedet").value||"";
 
-const texto = `S/ ${expediente} - Certificado Básico N° ${certificado} - ${mes} ${anio} - Z3
+document.getElementById("resultado").value =
+
+`S/ ${exp} - Certificado Básico N° ${cert} - ${mes} ${anio} - ${zona}
 
 DIRECCIÓN GENERAL TÉCNICA, ADMINISTRATIVA Y LEGAL
 
-Por las presentes actuaciones tramita el Certificado Básico N° ${certificado}, correspondiente a los trabajos realizados durante el mes de mayo de 2026 por la empresa Automat Argentina S.A. (CUIT N° 30-57847579-6) en el marco de la Licitación Pública N° 7162-0734-LPU21, del “Servicio de Mantenimiento Integral de la Red Pluvial y Tareas Correctivas”, que tramitó por el Expediente Electrónico N° 15676966-GCABA-DGTALMEPHU/21.
-En tal sentido, en el expediente se adjunta el Certificado N° ${certificado}, en el orden 4, el que luce como Informe N° ${ifCert}, el cual asciende a la suma de ${numeroALetras(monto)} (${monto}), correspondiente a las tareas de mantenimiento detalladas en el Informe mencionado.
-Cabe mencionar que durante el mes se llevó a cabo la verificación y control de las tareas realizadas, conforme a los Planes de Mantenimiento ejecutados por la empresa contratista, siguiendo lo establecido en el Pliego de Especificaciones Técnicas y las reglas del buen arte, de conformidad con lo informado por el Gerente Operativo de la Gerencia Operativa de Mantenimiento, bajo el Informe N° ${ifElev}.
-Asimismo, se informa que el monto mencionado surge del detalle de liquidación del sistema SAP (Systemanalyse Programmentwicklung), el cual se vinculó al Expediente de referencia mediante el Informe N° ${ifSap}.
-En este sentido, corresponde señalar que por Resolución 281-MEPHUGC/26 se aprobó el Acta Acuerdo de la primera a vigésima sexta (1° a 26°) Redeterminación Definitiva de Precios suscripta, en el marco de la Ley 2.809, entre este Ministerio de Espacio Público e Higiene Urbana y la empresa AUTOMAT ARGENTINA S.A., adjudicataria de la Zona 3 de la Licitación Pública de Etapa Múltiple 7162-0734-LPU21, referida al “Servicio de Mantenimiento Integral de la Red Pluvial y Tareas Correctivas” por el monto antes mencionado.
-Asimismo, se aprobaron las Redeterminaciones Provisorias de precios del servicio, por un total de ${numeroALetras(redet)} (${redet}), mediante las resoluciones N° 1953-MHFGC/25, 2498-MHFGC/25, 0734-MHFGC/25, 4985-MHFGC/25 y 1560-MHFGC/26.
-Por otra parte, en virtud de lo estipulado en el artículo N° 60 del Pliego de Bases y Condiciones Particulares de la licitación que nos ocupa, solicitamos se efectúe la retención del 0,7% sobre el monto total correspondiente al servicio básico y a sus valores redeterminados.
-Atento a lo expuesto, esta Dirección General presta conformidad al monto básico de ${numeroALetras(monto)} (${monto}) y su monto redeterminado de ${numeroALetras(redet)} (${redet}), por lo que se envían las presentes para la aprobación del Certificado N° ${certificado} y la ejecución de la retención solicitada.
+Por las presentes actuaciones tramita el Certificado Básico N° ${cert}, correspondiente a los trabajos realizados durante el mes de ${mes} de ${anio} por la empresa AUTOMAT ARGENTINA S.A.
+
+En tal sentido, en el expediente se adjunta el Certificado N° ${cert}, en el orden 4, el que luce como Informe N° ${ifCert}, el cual asciende a la suma de ${numeroALetras(monto)} (${monto}), correspondiente a las tareas ejecutadas.
+
+Cabe mencionar que durante el mes se llevó a cabo la verificación y control de las tareas realizadas, bajo el Informe N° ${ifElev}.
+
+Asimismo, se informa que el monto mencionado surge del sistema SAP (Systemanalyse Programmentwicklung), mediante Informe N° ${ifSap}.
+
+En este sentido, corresponde señalar que se aprobaron las actuaciones correspondientes.
+
+Asimismo, se aprobaron las Redeterminaciones Provisorias por un total de ${numeroALetras(redet)} (${redet}).
+
+Atento a lo expuesto, esta Dirección presta conformidad.
 
 Saludo a Ud. atentamente.`;
-
-document.getElementById("resultado").value = texto;
 }
 
 function copiar(){
