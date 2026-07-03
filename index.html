@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Generador PV</title>
+
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;margin:0;background:#f3f5f7}
+header{background:#1f4e79;color:#fff;padding:14px 20px}
+.container{display:grid;grid-template-columns:420px 1fr;gap:16px;padding:16px}
+.panel{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+h3{margin:8px 0}
+.section{border-top:1px solid #ddd;padding-top:8px;margin-top:8px}
+label{display:block;font-weight:600;margin-top:8px}
+input,select,textarea{width:100%;box-sizing:border-box;padding:8px}
+.preview{height:85vh;font-family:Calibri,Arial,sans-serif;line-height:1.5}
+.auto{background:#eef7ff;padding:8px;border-radius:6px;margin-top:8px}
+.buttons{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+button{padding:10px 12px}
+</style>
+</head>
+
+<body>
+<header><h2>Generador PV</h2></header>
+
+<div class="container">
+<div class="panel">
+
+<div class="section">
+<h3>Datos Generales</h3>
+<label>Expediente</label><input id="expediente">
+<label>Certificado N°</label><input id="certificado">
+<label>Mes</label><input id="mes" value="MAYO">
+<label>Año</label><input id="anio" value="2026">
+
+<label>Zona</label>
+<select id="zona">
+<option value="Z1">Zona 1</option>
+<option value="Z2">Zona 2</option>
+<option value="Z3">Zona 3</option>
+<option value="Z4">Zona 4</option>
+<option value="Z5">Zona 5</option>
+</select>
+</div>
+
+<div class="section">
+<h3>Informes</h3>
+<label>IF Certificado</label><input id="ifCert">
+<label>IF Elevación</label><input id="ifElev">
+<label>IF SAP</label><input id="ifSap">
+</div>
+
+<div class="section">
+<h3>Montos</h3>
+<label>Monto Básico</label><input id="montoBasico" readonly>
+<label>Monto Redeterminado</label><input id="montoRedet">
+
+<label>Monto Básico en Letras</label><input id="letrasBasico">
+<label>Monto Redeterminado en Letras</label><input id="letrasRedet">
+</div>
+
+<div class="section">
+<h3>Datos Automáticos</h3>
+<div class="auto">
+<div><b>Empresa:</b> <span id="empresa"></span></div>
+<div><b>CUIT:</b> <span id="cuit"></span></div>
+<div><b>Resolución:</b> <span id="resDef"></span></div>
+<div><b>Redeterminación:</b> <span id="redet"></span></div>
+</div>
+</div>
+
+<div class="buttons">
+<button onclick="actualizar()">Generar</button>
+<button onclick="copiar()">Copiar</button>
+<button onclick="limpiar()">Limpiar</button>
+</div>
+
+</div>
+
+<div class="panel">
+<textarea id="resultado" class="preview"></textarea>
+</div>
+</div>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", () => {
+
+const zonas = {
+Z1:{empresa:"SOLUCIONES QUÍMICAS S.A., OS.LO. ARGENTINA S.A., MANTELECTRIC I.C.I.S.A. U.T.",cuit:"30-71731123-6",res:"377-MEPHUGC/26",red:"1° a 27°"},
+Z2:{empresa:"RECONSTRUCCIÓN CAÑOS S.A.",cuit:"30-67779097-7",res:"282-MEPHUGC/26",red:"1° a 26°"},
+Z3:{empresa:"AUTOMAT ARGENTINA S.A.",cuit:"30-57847579-6",res:"281-MEPHUGC/26",red:"1° a 26°"},
+Z4:{empresa:"DESOBSTRUCTORA ARGENTINA S.A. - ASHIRA S.A. U.T.",cuit:"30-71726938-8",res:"376-MEPHUGC/26",red:"1° a 23°"},
+Z5:{empresa:"ALEMARSA S.A. - SACH S.A. - MANTENIMIENTOS AMBIENTALES S.A. U.T.",cuit:"30-71730593-7",res:"378-MEPHUGC/26",red:"1° a 26°"}
+};
+
+const montos = {
+Z1:"$432.273.202,09",
+Z2:"$172.672.388,38",
+Z3:"$402.868.375,48",
+Z4:"$220.756.772,77",
+Z5:"$190.738.281,49"
+};
+
+function numeroALetras(v){
+if(!v) return "PESOS CERO CON 00/100";
+
+const limpio = String(v).replace(/[$.]/g,'').replace(',','.');
+const n = parseFloat(limpio);
+if(isNaN(n)) return "PESOS CERO CON 00/100";
+
+const ent=Math.floor(n), dec=Math.round((n-ent)*100);
+
+const u=x=>['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE'][x]||'';
+
+function c(n){
+if(n<10)return u(n);
+if(n==10)return'DIEZ';
+if(n==11)return'ONCE';
+if(n==12)return'DOCE';
+if(n==13)return'TRECE';
+if(n==14)return'CATORCE';
+if(n==15)return'QUINCE';
+if(n<20)return'DIECI'+u(n-10);
+if(n<30)return n==20?'VEINTE':'VEINTI'+u(n-20);
+
+const d=['','','VEINTE','TREINTA','CUARENTA','CINCUENTA','SESENTA','SETENTA','OCHENTA','NOVENTA'];
+if(n<100){
+let r=d[Math.floor(n/10)];
+if(n%10) r+=' Y '+u(n%10);
+return r;
+}
+
+const s=['','CIENTO','DOSCIENTOS','TRESCIENTOS','CUATROCIENTOS','QUINIENTOS','SEISCIENTOS','SETECIENTOS','OCHOCIENTOS','NOVECIENTOS'];
+if(n==100)return'CIEN';
+if(n<1000){
+let r=s[Math.floor(n/100)];
+if(n%100) r+=' '+c(n%100);
+return r;
+}
+
+if(n<1000000){
+let m=Math.floor(n/1000);
+return (m==1?'MIL':c(m)+' MIL') + (n%1000?' '+c(n%1000):'');
+}
+
+let mm=Math.floor(n/1000000);
+return (mm==1?'UN MILLON':c(mm)+' MILLONES') + (n%1000000?' '+c(n%1000):'');
+}
+
+return 'PESOS '+c(ent)+' CON '+String(dec).padStart(2,'0')+'/100';
+}
+
+function actualizar(){
+
+const z = zonas[zona.value];
+empresa.textContent = z.empresa;
+cuit.textContent = z.cuit;
+resDef.textContent = z.res;
+redet.textContent = z.red;
+
+montoBasico.value = montos[zona.value] || "";
+montoRedet.value = montoRedet.value || "";
+
+letrasBasico.value = numeroALetras(montoBasico.value);
+letrasRedet.value = numeroALetras(montoRedet.value);
+
+resultado.value =
+`S/ ${expediente.value || ""} - Certificado Básico N° ${certificado.value || ""} - ${mes.value} ${anio.value} - ${zona.value}
+
+DIRECCIÓN GENERAL TÉCNICA, ADMINISTRATIVA Y LEGAL
+
+Por las presentes actuaciones tramita el Certificado Básico N° ${certificado.value || ""}, correspondiente a los trabajos realizados durante el mes de ${mes.value.toLowerCase()} de ${anio.value} por la empresa ${z.empresa} (CUIT N° ${z.cuit}).
+
+En tal sentido, en el expediente se adjunta el Certificado N° ${certificado.value || ""}, el que luce como Informe N° ${ifCert.value || ""}, por un monto de ${letrasBasico.value} (${montoBasico.value}), correspondiente a las tareas ejecutadas.
+
+Asimismo, se deja constancia de que las tareas fueron verificadas conforme Informe N° ${ifElev.value || ""}.
+
+El monto surge del sistema SAP vinculado mediante Informe N° ${ifSap.value || ""}.
+
+Cabe señalar que mediante Resolución N° ${z.res} se aprobaron las redeterminaciones correspondientes a la empresa.
+
+Asimismo, se aprobaron las Redeterminaciones Provisorias por un total de ${letrasRedet.value} (${montoRedet.value || ""}).
+
+Atento a lo expuesto, esta Dirección presta conformidad al monto básico ${letrasBasico.value} (${montoBasico.value}) y al monto redeterminado ${letrasRedet.value} (${montoRedet.value || ""}).
+
+Saludo a Ud. atentamente.`;
+
+}
+
+document.querySelectorAll("input,select").forEach(e=>{
+e.addEventListener("input", actualizar);
+});
+
+actualizar();
+
+});
+
+function copiar(){navigator.clipboard.writeText(resultado.value || "");}
+function limpiar(){location.reload();}
+
+</script>
+
+</body>
+</html>
