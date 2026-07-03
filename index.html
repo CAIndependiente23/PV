@@ -15,9 +15,9 @@ h3{margin:8px 0}
 label{display:block;font-weight:600;margin-top:8px}
 input,select,textarea{width:100%;box-sizing:border-box;padding:8px}
 .preview{height:85vh;font-family:Calibri,Arial,sans-serif;line-height:1.5}
-.auto{background:#eef7ff;padding:8px;border-radius:6px;margin-top:8px}
 .buttons{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 button{padding:10px 12px}
+.auto{background:#eef7ff;padding:8px;border-radius:6px;margin-top:8px}
 </style>
 </head>
 
@@ -25,6 +25,7 @@ button{padding:10px 12px}
 <header><h2>Generador PV</h2></header>
 
 <div class="container">
+
 <div class="panel">
 
 <div class="section">
@@ -33,7 +34,6 @@ button{padding:10px 12px}
 <label>Certificado N°</label><input id="certificado">
 <label>Mes</label><input id="mes" value="MAYO">
 <label>Año</label><input id="anio" value="2026">
-
 <label>Zona</label>
 <select id="zona">
 <option value="Z1">Zona 1</option>
@@ -55,39 +55,29 @@ button{padding:10px 12px}
 <h3>Montos</h3>
 <label>Monto Básico</label><input id="montoBasico" readonly>
 <label>Monto Redeterminado</label><input id="montoRedet">
-
 <label>Monto Básico en Letras</label><input id="letrasBasico">
 <label>Monto Redeterminado en Letras</label><input id="letrasRedet">
-</div>
-
-<div class="section">
-<h3>Datos Automáticos</h3>
-<div class="auto">
-<div><b>Empresa:</b> <span id="empresa"></span></div>
-<div><b>CUIT:</b> <span id="cuit"></span></div>
-<div><b>Resolución:</b> <span id="resDef"></span></div>
-<div><b>Redeterminación:</b> <span id="redet"></span></div>
-</div>
-</div>
-
-<div class="buttons">
-<button onclick="actualizar()">Generar</button>
-<button onclick="copiar()">Copiar</button>
-<button onclick="limpiar()">Limpiar</button>
 </div>
 
 </div>
 
 <div class="panel">
 <textarea id="resultado" class="preview"></textarea>
+
+<div class="buttons">
+<button onclick="actualizar()">Generar</button>
+<button onclick="copiar()">Copiar</button>
+<button onclick="location.reload()">Limpiar</button>
 </div>
+</div>
+
 </div>
 
 <script>
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded",()=>{
 
-const zonas = {
+const zonas={
 Z1:{empresa:"SOLUCIONES QUÍMICAS S.A., OS.LO. ARGENTINA S.A., MANTELECTRIC I.C.I.S.A. U.T.",cuit:"30-71731123-6",res:"377-MEPHUGC/26",red:"1° a 27°"},
 Z2:{empresa:"RECONSTRUCCIÓN CAÑOS S.A.",cuit:"30-67779097-7",res:"282-MEPHUGC/26",red:"1° a 26°"},
 Z3:{empresa:"AUTOMAT ARGENTINA S.A.",cuit:"30-57847579-6",res:"281-MEPHUGC/26",red:"1° a 26°"},
@@ -95,7 +85,7 @@ Z4:{empresa:"DESOBSTRUCTORA ARGENTINA S.A. - ASHIRA S.A. U.T.",cuit:"30-71726938
 Z5:{empresa:"ALEMARSA S.A. - SACH S.A. - MANTENIMIENTOS AMBIENTALES S.A. U.T.",cuit:"30-71730593-7",res:"378-MEPHUGC/26",red:"1° a 26°"}
 };
 
-const montos = {
+const montos={
 Z1:"$432.273.202,09",
 Z2:"$172.672.388,38",
 Z3:"$402.868.375,48",
@@ -105,13 +95,11 @@ Z5:"$190.738.281,49"
 
 function numeroALetras(v){
 if(!v) return "PESOS CERO CON 00/100";
-
-const limpio = String(v).replace(/[$.]/g,'').replace(',','.');
-const n = parseFloat(limpio);
+const limpio=String(v).replace(/[$.]/g,'').replace(',','.');
+const n=parseFloat(limpio);
 if(isNaN(n)) return "PESOS CERO CON 00/100";
 
 const ent=Math.floor(n), dec=Math.round((n-ent)*100);
-
 const u=x=>['','UNO','DOS','TRES','CUATRO','CINCO','SEIS','SIETE','OCHO','NUEVE'][x]||'';
 
 function c(n){
@@ -142,11 +130,11 @@ return r;
 
 if(n<1000000){
 let m=Math.floor(n/1000);
-return (m==1?'MIL':c(m)+' MIL') + (n%1000?' '+c(n%1000):'');
+return (m==1?'MIL':c(m)+' MIL')+(n%1000?' '+c(n%1000):'');
 }
 
 let mm=Math.floor(n/1000000);
-return (mm==1?'UN MILLON':c(mm)+' MILLONES') + (n%1000000?' '+c(n%1000):'');
+return (mm==1?'UN MILLON':c(mm)+' MILLONES')+(n%1000000?' '+c(n%1000000):'');
 }
 
 return 'PESOS '+c(ent)+' CON '+String(dec).padStart(2,'0')+'/100';
@@ -154,51 +142,49 @@ return 'PESOS '+c(ent)+' CON '+String(dec).padStart(2,'0')+'/100';
 
 function actualizar(){
 
-const z = zonas[zona.value];
-empresa.textContent = z.empresa;
-cuit.textContent = z.cuit;
-resDef.textContent = z.res;
-redet.textContent = z.red;
+const z=zonas[zona.value];
+montoBasico.value=montos[zona.value]||"";
+letrasBasico.value=numeroALetras(montoBasico.value);
+letrasRedet.value=numeroALetras(montoRedet.value||"");
 
-montoBasico.value = montos[zona.value] || "";
-montoRedet.value = montoRedet.value || "";
-
-letrasBasico.value = numeroALetras(montoBasico.value);
-letrasRedet.value = numeroALetras(montoRedet.value);
-
-resultado.value =
-`S/ ${expediente.value || ""} - Certificado Básico N° ${certificado.value || ""} - ${mes.value} ${anio.value} - ${zona.value}
+resultado.value=
+`S/ ${expediente.value||""} - Certificado Básico N° ${certificado.value||""} - ${mes.value} ${anio.value} - ${zona.value}
 
 DIRECCIÓN GENERAL TÉCNICA, ADMINISTRATIVA Y LEGAL
 
-Por las presentes actuaciones tramita el Certificado Básico N° ${certificado.value || ""}, correspondiente a los trabajos realizados durante el mes de ${mes.value.toLowerCase()} de ${anio.value} por la empresa ${z.empresa} (CUIT N° ${z.cuit}).
+Por las presentes actuaciones tramita el Certificado Básico N° ${certificado.value||""}, correspondiente a los trabajos realizados durante el mes de ${mes.value.toLowerCase()} de ${anio.value} por la empresa ${z.empresa} (CUIT N° ${z.cuit}).
 
-En tal sentido, en el expediente se adjunta el Certificado N° ${certificado.value || ""}, el que luce como Informe N° ${ifCert.value || ""}, por un monto de ${letrasBasico.value} (${montoBasico.value}), correspondiente a las tareas ejecutadas.
+En tal sentido, en el expediente se adjunta el Certificado N° ${certificado.value||""}, en el orden 4, el que luce como Informe N° ${ifCert.value||""}, el cual asciende a la suma de ${letrasBasico.value} (${montoBasico.value}), correspondiente a las tareas de mantenimiento detalladas en el Informe mencionado.
 
-Asimismo, se deja constancia de que las tareas fueron verificadas conforme Informe N° ${ifElev.value || ""}.
+Cabe mencionar que durante el mes se llevó a cabo la verificación y control de las tareas realizadas, conforme a los Planes de Mantenimiento ejecutados por la empresa contratista, bajo el Informe N° ${ifElev.value||""}.
 
-El monto surge del sistema SAP vinculado mediante Informe N° ${ifSap.value || ""}.
+Asimismo, se informa que el monto mencionado surge del sistema SAP, vinculado mediante Informe N° ${ifSap.value||""}.
 
-Cabe señalar que mediante Resolución N° ${z.res} se aprobaron las redeterminaciones correspondientes a la empresa.
+En este sentido, corresponde señalar que por Resolución N° ${z.res} se aprobó el Acta Acuerdo de la redeterminación definitiva de precios correspondiente a la empresa adjudicataria de la Zona.
 
-Asimismo, se aprobaron las Redeterminaciones Provisorias por un total de ${letrasRedet.value} (${montoRedet.value || ""}).
+Asimismo, se aprobaron las Redeterminaciones Provisorias por un total de ${letrasRedet.value} (${montoRedet.value||""}), mediante las resoluciones correspondientes.
 
-Atento a lo expuesto, esta Dirección presta conformidad al monto básico ${letrasBasico.value} (${montoBasico.value}) y al monto redeterminado ${letrasRedet.value} (${montoRedet.value || ""}).
+Por otra parte, en virtud de lo estipulado en el artículo N° 60 del Pliego de Bases y Condiciones Particulares, solicitamos se efectúe la retención del 0,7% sobre el monto total.
+
+Atento a lo expuesto, esta Dirección General presta conformidad al monto básico de ${letrasBasico.value} (${montoBasico.value}) y al monto redeterminado de ${letrasRedet.value} (${montoRedet.value||""}).
 
 Saludo a Ud. atentamente.`;
 
 }
 
+window.actualizar=actualizar;
+
 document.querySelectorAll("input,select").forEach(e=>{
-e.addEventListener("input", actualizar);
+e.addEventListener("input",actualizar);
 });
 
 actualizar();
 
 });
 
-function copiar(){navigator.clipboard.writeText(resultado.value || "");}
-function limpiar(){location.reload();}
+function copiar(){
+navigator.clipboard.writeText(document.getElementById("resultado").value||"");
+}
 
 </script>
 
