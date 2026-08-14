@@ -110,7 +110,7 @@ Corresponde señalar que por Resolución ${z.res} se aprobó el Acta Acuerdo de 
 
 ${esA?`Resulta pertinente mencionar que, la Autoridad Cuenca Matanza Riachuelo (ACUMAR), en el marco de los autos “AGUA Y SANEAMIENTOS ARGENTINOS S.A. (AYSA) Y OTROS S/ EJECUCIÓN DE SENTENCIA” Expte. 298/2013 en trámite por ante el Juzgado Criminal y Correccional Federal N° 12 Secretaría N° 24, solicita una actualización de la información respecto del estado y situación de aquellas contrataciones en las que sea parte la Ciudad Autónoma de Buenos Aires (junto con las obras nuevas que pudieren incorporarse al presente período de ejecución), en el ámbito de la Cuenca Hídrica Matanza Riachuelo y que tengan por objeto la realización de obras de provisión de agua potable, cloaca o tratamiento de basura.
 
-`:``}${esA?`En este sentido, se adjunta a orden 4 el expediente el Certificado N° ${certificado.value}, el que luce como Informe N° ${ifCert.value}, el cual asciende a la suma de ${numeroALetras(montoBasico.value)} (${montoBasico.value}) correspondiente a las tareas de mantenimiento y a ${numeroALetras(montoAcumar.value)} (${montoAcumar.value}) correspondiente a las tareas de mantenimiento relacionadas a ACUMAR.`:`En tal sentido, en el expediente se adjunta el Certificado N°${certificado.value}, en el orden 4, el que luce como Informe N° ${ifCert.value}, el cual asciende a la suma de ${numeroALetras(montoBasico.value)} (${montoBasico.value}), correspondiente a las tareas de mantenimiento detalladas en el Informe mencionado.`}
+`:``}${esA?`En este sentido, se adjunta a orden 4 el Certificado N° ${certificado.value}, el que luce como Informe N° ${ifCert.value}, el cual asciende a la suma de ${numeroALetras(montoBasico.value)} (${montoBasico.value}) correspondiente a las tareas de mantenimiento y a ${numeroALetras(montoAcumar.value)} (${montoAcumar.value}) correspondiente a las tareas de mantenimiento relacionadas a ACUMAR.`:`En tal sentido, en el expediente se adjunta el Certificado N°${certificado.value}, en el orden 4, el que luce como Informe N° ${ifCert.value}, el cual asciende a la suma de ${numeroALetras(montoBasico.value)} (${montoBasico.value}), correspondiente a las tareas de mantenimiento detalladas en el Informe mencionado.`}
 
 Cabe mencionar que durante el mes se llevó a cabo la verificación y control de las tareas realizadas, conforme a los Planes de Mantenimiento ejecutados por la empresa contratista, siguiendo lo establecido en el Pliego de Especificaciones Técnicas y las reglas del buen arte, de conformidad con lo informado por el Gerente Operativo de la Gerencia Operativa de Mantenimiento, bajo el Informe N° ${ifElev.value}.
 
@@ -122,7 +122,7 @@ Por otra parte, en virtud de lo estipulado en el artículo N° 60 del Pliego de 
 
 ${esA?`Atento a lo expuesto, esta Dirección General presta conformidad al monto básico total de ${numeroALetras(fmt(mb+ma))} (${fmt(mb+ma)}) y su monto redeterminado total de ${numeroALetras(fmt(mr+mra))} (${fmt(mr+mra)}),`:`Atento a lo expuesto, esta Dirección General presta conformidad al monto básico de ${numeroALetras(montoBasico.value)} (${montoBasico.value}) y su monto redeterminado de ${numeroALetras(montoRedet.value)} (${montoRedet.value}),`} por lo que se envían las presentes para la aprobación del Certificado N° ${certificado.value} y la ejecución de la retención solicitada.
 
-Saludo a Ud. atentamente.-`;
+Sin más, saludo a Ud. atentamente.-`;
 }
 actualizarZona();
 function exportarWord(){
